@@ -49,11 +49,19 @@
     <span id="btnText">ክፍያውን አረጋግጥ</span>
   </button>
 
-  <div id="resultBox" class="mt-5 hidden p-4 rounded-xl border text-sm">
-    <h3 id="resultTitle" class="font-bold text-base mb-1"></h3>
-    <p id="resultDetails" class="text-gray-600 whitespace-pre-line leading-relaxed"></p>
+  <!-- ደረሰኝ ካርድ -->
+  <div id="receipt" class="hidden mt-5 rounded-2xl border p-5 text-center">
+    <div id="rIcon" class="mx-auto w-12 h-12 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-2">✓</div>
+    <p id="rTitle" class="font-bold text-gray-800"></p>
+    <p id="rAmount" class="text-3xl font-extrabold text-gray-900 my-1"></p>
+    <div id="rRows" class="text-left text-sm mt-3"></div>
+    <div id="rNote" class="hidden mt-3 rounded-xl px-3 py-2 text-sm text-left"></div>
+    <button onclick="hideReceipt()" class="mt-4 w-full py-2.5 rounded-lg font-semibold text-white bg-gray-800">ዝጋ</button>
   </div>
 </div>
+
+<!-- ቀላል toast -->
+<div id="toast" class="fixed left-1/2 bottom-6 max-w-[90%] px-4 py-2.5 rounded-2xl text-sm text-white shadow-lg opacity-0 pointer-events-none transition-opacity duration-200" style="transform:translateX(-50%)"></div>
 
 <script>
   // የ Apps Script /exec URL ብቻ ተካ
@@ -69,7 +77,7 @@
   const HAS_LINK = !!(ORDER || AMOUNT || SIG);
   const LINK_OK = !!(ORDER && parseFloat(AMOUNT) > 0 && SIG);
   const $ = (id) => document.getElementById(id);
-  let method = "image";
+  let method = "image", toastTimer;
 
   if (HAS_LINK) { $("price").textContent = AMOUNT || "—"; $("orderId").textContent = ORDER || "—"; }
   else $("amountCard").classList.add("hidden");
@@ -93,7 +101,7 @@
   }
 
   function setMethod(m) {
-    method = m; hideResult();
+    method = m;
     for (const k of ["image", "sms", "trx"]) {
       $("input-" + k).classList.toggle("hidden", k !== m);
       $("tab-" + k).className = "flex-1 py-2 rounded-md " + (k === m ? "bg-white shadow font-semibold text-gray-900" : "text-gray-500");
@@ -106,7 +114,6 @@
     r.onload = (e) => { $("preview").src = e.target.result; $("uploadBox").classList.add("hidden"); $("previewBox").classList.remove("hidden"); };
     r.readAsDataURL(input.files[0]);
   }
-
   function clearImage() {
     $("receiptImage").value = ""; $("preview").src = "";
     $("previewBox").classList.add("hidden"); $("uploadBox").classList.remove("hidden");
@@ -157,59 +164,87 @@
   }
 
   async function verifyPayment() {
-    hideResult();
-    if (API_URL.indexOf("PUT_YOUR") === 0) return show("error", "ቅንብር ያልተጠናቀቀ", "API_URL አልተሞላም።");
-    if (HAS_LINK && !LINK_OK) return show("error", "ትክክል ያልሆነ ሊንክ", "እባክዎ ከአገልግሎት ሰጪው የተላከልዎትን ሊንክ ተጠቅመው ይግቡ።");
+    hideReceipt();
+    if (API_URL.indexOf("PUT_YOUR") === 0) return toast("API_URL አልተሞላም", "err");
+    if (HAS_LINK && !LINK_OK) return toast("ትክክል ያልሆነ ሊንክ። አዲስ ሊንክ ይጠይቁ", "err");
 
     let ref = null;
     if (method === "image") {
       const f = $("receiptImage").files[0];
-      if (!f) return show("error", "ስክሪንሹት አልተመረጠም", "እባክዎ የክፍያ ደረሰኝ ፎቶ ይምረጡ።");
+      if (!f) return toast("የደረሰኝ ፎቶ ይምረጡ", "warn");
       setLoading(true, "ፎቶውን በማንበብ ላይ...");
       try { ref = extractRef(await readImage(f), false); }
-      catch (e) { setLoading(false); return show("error", "ፎቶውን ማንበብ አልተቻለም", "'Trx No' ወይም 'ሙሉ SMS' ትርን ይጠቀሙ።"); }
+      catch (e) { setLoading(false); return toast("ፎቶውን ማንበብ አልተቻለም። 'Trx No' ይጠቀሙ", "err"); }
     } else if (method === "sms") ref = extractRef($("smsText").value, false);
     else ref = extractRef($("trxText").value, true);
 
-    if (!ref) {
-      setLoading(false);
-      return show("error", "ማጣቀሻ አልተገኘም", "የክፍያ ቁጥር (FT፣ v2 ሊንክ ወይም Trx No) አልተገኘም። ሙሉውን ያስገቡ ወይም ቁጥሩን በ 'Trx No' ትር ይጻፉ።");
-    }
+    if (!ref) { setLoading(false); return toast("የክፍያ ቁጥር አልተገኘም። ሙሉውን ያስገቡ", "warn"); }
+
     setLoading(true, "በማረጋገጥ ላይ...");
     try { handle(await callApi(ref), ref); }
-    catch (e) { show("error", "የኔትወርክ ስህተት", "ከሰርቨር ጋር መገናኘት አልተቻለም። ደግመው ይሞክሩ።"); }
+    catch (e) { toast("ከሰርቨር ጋር መገናኘት አልተቻለም። ደግመው ይሞክሩ", "err"); }
     finally { setLoading(false); }
   }
 
   function handle(d, ref) {
-    const read = "\nያነበብነው ቁጥር: " + ref;
-    const got = d.amount ? "\nተቀብለናል: " + d.amount + " ብር" : "";
     switch (d.status) {
-      case "Verified": return show("success", "ክፍያዎ ተረጋግጧል!", "ላኪ: " + d.from_to + got + "\nRef: " + d.ref_no);
-      case "OrderDone": return show("success", "ይህ ትዕዛዝ ቀደም ብሎ ተረጋግጧል", "ላኪ: " + d.from_to + got + "\nRef: " + d.ref_no);
-      case "AlreadyUsed": return show("error", "ክፍያው ተጠቅሟል!", "ይህ የክፍያ ቁጥር ከዚህ በፊት ጥቅም ላይ ውሏል።" + read);
-      case "InvalidAmount": return show("error", "የገንዘብ መጠን ስህተት!", "የሚጠበቀው: " + d.expected + " ብር\nየተከፈለው: " + d.actual + " ብር");
-      case "Expired": return show("error", "ጊዜው ያለፈበት ደረሰኝ!", "ይህ ደረሰኝ ከ 24 ሰዓት በላይ ስለቆየ አገልግሎት አይሰጥም።");
-      case "Bad_Link": return show("error", "ትክክል ያልሆነ ሊንክ", "እባክዎ አዲስ ሊንክ ይጠይቁ።");
-      case "TooMany": return show("warning", "ብዙ ሙከራ ተደርጓል", "ከ 10 ደቂቃ በኋላ ደግመው ይሞክሩ።");
-      case "System_Busy": return show("warning", "ሲስተሙ ስራ ላይ ነው", "ከ 10 ሰከንድ በኋላ ደግመው ይሞክሩ።");
-      case "Pending": return show("warning", "ክፍያው አልተገኘም", "ክፍያዎ ገና ሲስተማችን ላይ አልደረሰም ወይም ቁጥሩ ተሳስቷል። ጥቂት ሰከንዶች ጠብቀው ይሞክሩ። ፎቶ ከሆነ ቁጥሩ በትክክል ላይነበብ ይችላል፣ በ 'Trx No' ትር ይጻፉት።" + read);
-      default: return show("error", "የሲስተም ስህተት", "ቆይተው ይሞክሩ።");
+      case "Verified": return showReceipt(d, "ok");
+      case "OrderDone": return showReceipt(d, "order");
+      case "VerifiedBefore": return showReceipt(d, "before");
+      case "InvalidAmount": return toast("መጠን አይመሳሰልም። የሚጠበቀው " + d.expected + " ብር፣ የተከፈለው " + d.actual + " ብር", "err");
+      case "Expired": return toast("ደረሰኙ ከ 24 ሰዓት በላይ ስለቆየ ተቀባይነት የለውም", "err");
+      case "Bad_Link": return toast("ትክክል ያልሆነ ሊንክ። አዲስ ሊንክ ይጠይቁ", "err");
+      case "TooMany": return toast("ብዙ ሙከራ ተደርጓል። ከ 10 ደቂቃ በኋላ ይሞክሩ", "warn");
+      case "System_Busy": return toast("ሲስተሙ ስራ ላይ ነው። ደግመው ይሞክሩ", "warn");
+      case "Pending": return toast("ክፍያው አልተገኘም። ቆይተው ይሞክሩ · ያነበብነው: " + ref, "warn");
+      default: return toast("ስህተት ተፈጥሯል። ቆይተው ይሞክሩ", "err");
     }
+  }
+
+  function fmt(ms) {
+    return ms ? new Date(ms).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+  }
+
+  function showReceipt(d, kind) {
+    const bank = PAY_TO[d.bank] || {};
+    const green = kind !== "before";
+    $("receipt").className = "mt-5 rounded-2xl border p-5 text-center " + (green ? "bg-green-50 border-green-200" : "bg-amber-50 border-amber-200");
+    $("rIcon").style.background = green ? "#15803d" : "#d97706";
+    $("rIcon").textContent = green ? "✓" : "!";
+    $("rTitle").textContent = kind === "before" ? "ይህ ክፍያ ከዚህ በፊት ተረጋግጧል" : kind === "order" ? "ይህ ትዕዛዝ ቀደም ብሎ ተረጋግጧል" : "ክፍያዎ ተረጋግጧል";
+    $("rAmount").textContent = (d.amount || 0) + " ብር";
+    $("rRows").textContent = "";
+    [["ላኪ", d.from_to], ["ቀን እና ሰዓት", fmt(d.paid_at)], ["Ref", d.ref_no], ["ተቀባይ", bank.name], ["ባንክ", bank.label]].forEach((r) => {
+      if (!r[1]) return;
+      const row = document.createElement("div");
+      row.className = "flex justify-between gap-3 py-1.5 border-b border-gray-200";
+      const a = document.createElement("span"), b = document.createElement("span");
+      a.className = "text-gray-500"; b.className = "font-semibold text-gray-800 text-right break-all";
+      a.textContent = r[0]; b.textContent = r[1];
+      row.appendChild(a); row.appendChild(b); $("rRows").appendChild(row);
+    });
+    const note = $("rNote");
+    if (kind === "before") {
+      note.className = "mt-3 rounded-xl px-3 py-2 text-sm text-left bg-amber-100 text-amber-800";
+      note.textContent = "ከዚህ በፊት የተረጋገጠው: " + (fmt(d.verified_at) || "ጊዜው አልተመዘገበም");
+    } else note.className = "hidden";
+    $("receipt").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+  function hideReceipt() { $("receipt").className = "hidden"; }
+
+  function toast(msg, type) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.style.background = type === "err" ? "#b91c1c" : type === "warn" ? "#b45309" : "#15803d";
+    t.classList.remove("opacity-0");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.add("opacity-0"), 3800);
   }
 
   function setLoading(on, text) {
     $("verifyBtn").disabled = on;
     $("verifyBtn").classList.toggle("opacity-75", on);
     $("btnText").textContent = text || "ክፍያውን አረጋግጥ";
-  }
-  function hideResult() { $("resultBox").classList.add("hidden"); }
-  function show(type, title, details) {
-    const s = { success: ["bg-green-50 border-green-200", "text-green-800"], error: ["bg-red-50 border-red-200", "text-red-800"], warning: ["bg-orange-50 border-orange-200", "text-orange-800"] }[type];
-    $("resultBox").className = "mt-5 p-4 rounded-xl border text-sm " + s[0];
-    $("resultTitle").className = "font-bold text-base mb-1 " + s[1];
-    $("resultTitle").textContent = title;
-    $("resultDetails").textContent = details;
   }
   setMethod("image");
 </script>
