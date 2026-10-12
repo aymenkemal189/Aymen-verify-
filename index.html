@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifi - Telebirr Payment Verification</title>
+    <title>Verifi - Secure Telebirr Checkout</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -32,8 +32,18 @@
 </head>
 <body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
 
-    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-100">
+    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-100 relative overflow-hidden">
         
+        <!-- ሊንኩ የተጭበረበረ ወይም ያልተሟላ ከሆነ ገጹን የሚቆልፍ (Security Overlay) -->
+        <div id="securityLockOverlay" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-6 text-center">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            </div>
+            <h3 class="text-xl font-extrabold text-gray-800 mb-2">የተቆለፈ የክፍያ ገጽ!</h3>
+            <p class="text-sm text-gray-600 leading-relaxed mb-4">ይህ የክፍያ ሊንክ ትክክለኛ አይደለም ወይም የደህንነት ፊርማ (Signature) የለውም። እባክዎ ከዋናው ገጽ ወይም ከቦቱ የተሰጠዎትን ትክክለኛ ሊንክ ይጠቀሙ።</p>
+            <span class="text-xs font-mono bg-gray-100 px-3 py-1.5 rounded text-gray-500 border">Error: MISSING_OR_TAMPERED_SIGNATURE</span>
+        </div>
+
         <!-- ራስጌ (Header) -->
         <div class="flex flex-col items-center justify-center mb-6">
             <div class="bg-telelight p-3 rounded-2xl border border-teleblue/30 shadow-sm mb-3">
@@ -43,17 +53,20 @@
             <p class="text-xs text-gray-500 mt-1">የቴሌብር ክፍያ ማረጋገጫ (ለአንድ ጊዜ ብቻ የሚያገለግል)</p>
         </div>
 
-        <!-- የክፍያ መጠን ማሳያ -->
+        <!-- የተቆለፈ የክፍያ መጠን እና የትዕዛዝ ቁጥር ማሳያ (ደንበኛው መቀየር አይችልም!) -->
         <div class="bg-gradient-to-r from-telelight to-white rounded-xl p-4 mb-6 border border-teleblue/30 flex justify-between items-center shadow-sm">
             <div>
-                <h3 class="text-teledark text-xs font-bold uppercase tracking-wider">የሚጠበቅ የክፍያ መጠን</h3>
+                <div class="flex items-center space-x-2">
+                    <span class="text-teledark text-xs font-bold uppercase tracking-wider">የሚከፈል መጠን</span>
+                    <span id="orderBadge" class="text-[11px] bg-teleblue/15 text-teledark px-2 py-0.5 rounded font-mono font-semibold"></span>
+                </div>
                 <p class="text-2xl font-extrabold text-gray-800 mt-1 flex items-baseline">
-                    <input type="number" id="expectedAmount" value="150" class="w-24 bg-transparent border-b-2 border-teleblue focus:outline-none text-2xl font-extrabold text-gray-800 p-0 text-center">
-                    <span class="text-sm font-semibold text-gray-500 ml-1">ብር (ETB)</span>
+                    <span id="displayAmount">0.00</span>
+                    <span class="text-sm font-semibold text-gray-500 ml-1.5">ብር (ETB)</span>
                 </p>
             </div>
-            <div class="w-12 h-12 bg-teleblue/10 rounded-full flex items-center justify-center text-teleblue">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            <div class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center text-green-600" title="Cryptographically Locked">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
             </div>
         </div>
 
@@ -87,7 +100,7 @@
 
         <!-- 3. የ Transaction ID ግብዓት -->
         <div id="input-manual" class="mb-6 hidden">
-            <input type="text" id="manualRef" class="w-full p-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teleblue transition text-sm bg-gray-50 text-center font-bold tracking-widest uppercase placeholder-gray-400" placeholder="ለምሳሌ: DB62J9H7L2">
+            <input type="text" id="manualRef" class="w-full p-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teleblue transition text-sm bg-gray-50 text-center font-bold tracking-widest uppercase placeholder-gray-400" placeholder="ለምሳሌ: DJC5Q7Q5UV">
         </div>
 
         <!-- ማረጋገጫ ቁልፍ -->
@@ -115,61 +128,58 @@
 
     <script>
         // ====================================================================
-        // 1. አዲሱን የ Apps Script Web App URL እዚህ አስገባ!
+        // አዲሱን የ Apps Script Web App URL (/exec) እዚህ አስገባ!
+        // ልብ በል: እዚህ ገጽ ላይ ምንም አይነት SECRET_TOKEN የለም! (100% Secure)
         // ====================================================================
         const API_URL = "https://script.google.com/macros/s/AKfycbyBS_nNY4ljWlkR_DM-PRRfyxibg1kBEL4fTTjSvCshnAnQe81JlKoDNprPfGoSahtgGA/exec"; 
-        
-        // 2. አዲሱ ሚስጥራዊ ቁልፍ (Secret Key)
-        const SECRET_TOKEN = "Verifi_Prod_9842_Aymen_X9!2026"; 
 
         let currentMethod = 'image';
+        let lockedOrder = "";
+        let lockedAmount = "";
+        let lockedSig = "";
+
+        // ገጹ ሲከፈት ከ URL ላይ የተቆለፈውን ትዕዛዝ፣ ብር እና ፊርማ ያነባል
+        window.onload = () => {
+            setMethod('image');
+            const params = new URLSearchParams(window.location.search);
+            lockedOrder = (params.get('order') || "").trim();
+            lockedAmount = (params.get('amount') || "").trim();
+            lockedSig = (params.get('sig') || "").trim();
+
+            if (!lockedOrder || !lockedAmount || !lockedSig || isNaN(parseFloat(lockedAmount))) {
+                document.getElementById('securityLockOverlay').classList.remove('hidden');
+            } else {
+                document.getElementById('displayAmount').textContent = parseFloat(lockedAmount).toFixed(2);
+                document.getElementById('orderBadge').textContent = "#" + lockedOrder;
+            }
+        };
 
         function getEthiopianDateTime() {
             try {
                 const dateOptions = { calendar: 'ethiopic', year: 'numeric', month: 'long', day: 'numeric' };
                 let ethDate = new Intl.DateTimeFormat('am-ET', dateOptions).format(new Date());
-
                 let now = new Date();
                 let hours = now.getHours(); 
                 let minutes = now.getMinutes();
 
-                let timeOfDay = "";
-                if (hours >= 6 && hours < 12) timeOfDay = "ጠዋት";
-                else if (hours >= 12 && hours < 18) timeOfDay = "ከሰዓት";
-                else if (hours >= 18 && hours < 24) timeOfDay = "ማታ";
-                else timeOfDay = "ሌሊት";
-
-                let ethHours = (hours + 6) % 12;
-                if (ethHours === 0) ethHours = 12;
-
+                let timeOfDay = hours >= 6 && hours < 12 ? "ጠዋት" : hours >= 12 && hours < 18 ? "ከሰዓት" : hours >= 18 && hours < 24 ? "ማታ" : "ሌሊት";
+                let ethHours = (hours + 6) % 12 || 12;
                 let minsStr = minutes < 10 ? "0" + minutes : minutes;
                 return `${ethDate} ፣ ${timeOfDay} ${ethHours}:${minsStr}`;
             } catch (e) {
-                let d = new Date();
-                return d.toLocaleDateString('am-ET') + " " + d.toLocaleTimeString('am-ET');
+                return new Date().toLocaleString('am-ET');
             }
         }
 
         function setMethod(method) {
             currentMethod = method;
             hideResult();
-            
             ['image', 'sms', 'manual'].forEach(m => {
                 const tab = document.getElementById('tab-' + m);
-                if (m === method) {
-                    tab.classList.remove('inactive-tab');
-                    tab.classList.add('active-tab');
-                } else {
-                    tab.classList.remove('active-tab');
-                    tab.classList.add('inactive-tab');
-                }
+                tab.classList.toggle('active-tab', m === method);
+                tab.classList.toggle('inactive-tab', m !== method);
+                document.getElementById('input-' + m).classList.toggle('hidden', m !== method);
             });
-
-            document.getElementById('input-image').classList.add('hidden');
-            document.getElementById('input-sms').classList.add('hidden');
-            document.getElementById('input-manual').classList.add('hidden');
-
-            document.getElementById('input-' + method).classList.remove('hidden');
         }
 
         function previewImageName(input) {
@@ -193,18 +203,14 @@
 
         function isCbeData(text) {
             const lower = text.toLowerCase();
-            return lower.includes('cbe') || 
-                   lower.includes('commercial bank') || 
-                   lower.includes('mbreciept') || 
-                   /\bft[a-z0-9]{8,15}\b/i.test(text) || 
-                   /\bv2-[a-z0-9-]+\b/i.test(text);
+            return lower.includes('cbe') || lower.includes('commercial bank') || lower.includes('mbreciept') || /\bft[a-z0-9]{8,15}\b/i.test(text);
         }
 
         function extractTelebirrRef(text) {
-            const appMatch = text.match(/(?:Transaction Number|Transaction ID|Txn ID|የክፍያ ቁጥር)[\s:]*([A-Z0-9]{8,15})/i);
+            const appMatch = text.match(/(?:Transaction Number|Transaction ID|Txn ID|የክፍያ ቁጥር)[\s:]*([A-Z0-9]{10,12})\b/i);
             if (appMatch) return appMatch[1].toUpperCase();
             
-            const smsMatch = text.match(/transaction number is[\s:]*([A-Z0-9]{8,15})/i);
+            const smsMatch = text.match(/transaction\s*(?:number|no|id)\s*(?:is)?[\s:]*([A-Z0-9]{10,12})\b/i);
             if (smsMatch) return smsMatch[1].toUpperCase();
             
             const fallbackMatch = text.match(/\b((?=[A-Z0-9]*[A-Z])(?=[A-Z0-9]*\d)[A-Z0-9]{10,12})\b/i);
@@ -214,12 +220,6 @@
         async function verifyPayment() {
             let extractedRawText = "";
             hideResult();
-
-            const expectedAmount = document.getElementById('expectedAmount').value;
-            if (!expectedAmount || expectedAmount <= 0) {
-                showResult('error', 'ስህተት', 'እባክዎ ትክክለኛ የክፍያ መጠን ያስገቡ።');
-                return;
-            }
 
             if (currentMethod === 'manual') {
                 extractedRawText = document.getElementById('manualRef').value.trim();
@@ -231,7 +231,6 @@
                     showResult('error', 'ፎቶ አልተመረጠም', 'እባክዎ የቴሌብር ደረሰኝ ስክሪንሹት ይምረጡ።');
                     return;
                 }
-                
                 setLoading(true, "ደረሰኙን በማንበብ ላይ... (AI)");
                 try {
                     const { data: { text } } = await Tesseract.recognize(fileInput.files[0], 'eng');
@@ -250,58 +249,48 @@
             }
 
             const refNo = extractTelebirrRef(extractedRawText);
-
             if (!refNo) {
                 setLoading(false);
-                showResult('error', 'የክፍያ ቁጥር አልተገኘም', 'ከመረጃው ላይ ትክክለኛ የቴሌብር የክፍያ ቁጥር (Transaction Number) አልተገኘም።');
+                showResult('error', 'የክፍያ ቁጥር አልተገኘም', 'ከመረጃው ላይ ትክክለኛ ባለ 10-12 ፊደል የቴሌብር የክፍያ ቁጥር (Transaction Number) አልተገኘም።');
                 return;
             }
 
             setLoading(true, "ክፍያውን በማረጋገጥ ላይ...");
             
             try {
-                const response = await fetch(`${API_URL}?ref=${encodeURIComponent(refNo)}&token=${encodeURIComponent(SECRET_TOKEN)}&amount=${encodeURIComponent(expectedAmount)}`);
+                // የተቆለፈውን order, amount እና sig አብሮ ወደ ሰርቨር ይልካል
+                const query = `?action=verify_signed&ref=${encodeURIComponent(refNo)}&order=${encodeURIComponent(lockedOrder)}&amount=${encodeURIComponent(lockedAmount)}&sig=${encodeURIComponent(lockedSig)}`;
+                const response = await fetch(API_URL + query);
                 const data = await response.json();
 
                 if (data.status === "Verified") {
                     const nowEth = getEthiopianDateTime();
-                    const details = `ክፍያዎ ለመጀመሪያ ጊዜ በትክክል ተረጋግጧል!\nከፋይ: ${data.from_to}\nመጠን: ${data.amount} ብር\nTxn No: ${data.ref_no}`;
+                    const details = `ክፍያዎ ለመጀመሪያ ጊዜ በትክክል ተረጋግጧል!\nትዕዛዝ: #${lockedOrder}\nከፋይ: ${data.from_to}\nመጠን: ${data.amount} ብር\nTxn No: ${data.ref_no}`;
                     showResult('success', 'ክፍያው ተረጋግጧል (Verified)!', details, true, nowEth);
-                    
-                    // አንድ ጊዜ ከተረጋገጠ መረጃውን ለታሪክ ያህል ብቻ ማስቀመጥ
-                    localStorage.setItem(`verifi_${refNo}`, JSON.stringify({
-                        from_to: data.from_to,
-                        amount: data.amount,
-                        ref_no: data.ref_no,
-                        time: nowEth
-                    }));
                 } 
                 else if (data.status === "AlreadyUsed") {
-                    // ጥብቅ ህግ: ሁለተኛ ጊዜ ሲሞከር ሁልጊዜም በቀይ (Error) ውድቅ ያደርገዋል!
-                    const cachedData = localStorage.getItem(`verifi_${refNo}`);
-                    if (cachedData) {
-                        const parsedCache = JSON.parse(cachedData);
-                        const details = `ይህ ደረሰኝ አንድ ጊዜ ብቻ ነው የሚያገለግለው! ቀደም ብሎ ተረጋግጧል።\nከፋይ: ${parsedCache.from_to}\nTxn No: ${parsedCache.ref_no}`;
-                        showResult('error', 'ውድቅ ተደርጓል - ቀድሞ የተረጋገጠ (Already Used)!', details, true, parsedCache.time);
-                    } else {
-                        showResult('error', 'ውድቅ ተደርጓል - ቀድሞ የተጠቀሙበት (Already Used)!', `ይህ የክፍያ ቁጥር (${refNo}) ከዚህ በፊት ጥቅም ላይ ውሏል። አንድ ደረሰኝ ሁለት ጊዜ አያገለግልም!`);
-                    }
+                    showResult('error', 'ውድቅ ተደርጓል - ቀድሞ የተጠቀሙበት (Already Used)!', `ይህ የክፍያ ቁጥር (${refNo}) ከዚህ በፊት ጥቅም ላይ ውሏል። አንድ ደረሰኝ ሁለት ጊዜ አያገለግልም!`);
+                }
+                else if (data.status === "OrderAlreadyPaid") {
+                    showResult('error', 'ትዕዛዙ ቀድሞ ተከፍሏል!', `ይህ የትዕዛዝ ቁጥር (#${lockedOrder}) ቀደም ብሎ ክፍያ ተፈጽሞበታል።`);
                 }
                 else if (data.status === "InvalidAmount") {
-                    showResult('error', 'የገንዘብ መጠን ስህተት!', `የከፈሉት የብር መጠን ትክክል አይደለም።\nየሚጠበቀው: ${data.expected} ብር\nየተከፈለው: ${data.actual} ብር`);
+                    showResult('error', 'የገንዘብ መጠን ስህተት!', `የከፈሉት የብር መጠን ከትዕዛዙ ጋር አይመጣጠንም።\nየሚጠበቀው: ${data.expected} ብር\nየተከፈለው: ${data.actual} ብር`);
+                }
+                else if (data.status === "Bad_Link") {
+                    showResult('error', 'የደህንነት ማስጠንቀቂያ (Tampered Link)!', 'የክፍያ ሊንኩ ወይም የገንዘቡ መጠን ተቀይሯል! እባክዎ ትክክለኛውን ሊንክ ይጠቀሙ።');
+                }
+                else if (data.status === "TooManyAttempts") {
+                    showResult('error', 'ሙከራ በዝቷል (Blocked)!', 'በተደጋጋሚ የተሳሳተ ሙከራ ስላደረጉ ለ 10 ደቂቃ ታግደዋል።');
                 }
                 else if (data.status === "Expired") {
                     showResult('error', 'ጊዜው ያለፈበት ደረሰኝ!', 'ይህ ደረሰኝ ከ 24 ሰዓት በላይ ስለቆየ አገልግሎት አይሰጥም።');
                 }
-                else if (data.status === "Unauthorized") {
-                    showResult('error', 'የደህንነት ስህተት', 'የሲስተም ቶከን (Secret Key) ስህተት አጋጥሟል።');
-                }
                 else {
                     showResult('warning', 'ክፍያው አልተገኘም (Pending)', 'ክፍያዎ ገና ሲስተማችን ላይ አልደረሰም ወይም ቁጥሩ ተሳስቷል። እባክዎ ጥቂት ሰከንዶች ጠብቀው ይሞክሩ።');
                 }
-
             } catch (error) {
-                showResult('error', 'የኔትወርክ ስህተት', 'ከሰርቨር ጋር መገናኘት አልተቻለም። እባክዎ የ API ሊንኩን በትክክል ማስገባትዎን ያረጋግጡ።');
+                showResult('error', 'የኔትወርክ ስህተት', 'ከሰርቨር ጋር መገናኘት አልተቻለም። እባክዎ የ API_URL ሊንኩን በትክክል ማስገባትዎን ያረጋግጡ።');
             } finally {
                 setLoading(false);
             }
@@ -309,18 +298,11 @@
 
         function setLoading(isLoading, text = "ክፍያውን አረጋግጥ") {
             const btn = document.getElementById('verifyBtn');
-            const spinner = document.getElementById('spinner');
-            const btnText = document.getElementById('btnText');
-            
             btn.disabled = isLoading;
-            btnText.innerText = text;
-            if (isLoading) {
-                btn.classList.add('opacity-75', 'cursor-not-allowed');
-                spinner.classList.remove('hidden');
-            } else {
-                btn.classList.remove('opacity-75', 'cursor-not-allowed');
-                spinner.classList.add('hidden');
-            }
+            document.getElementById('btnText').innerText = text;
+            btn.classList.toggle('opacity-75', isLoading);
+            btn.classList.toggle('cursor-not-allowed', isLoading);
+            document.getElementById('spinner').classList.toggle('hidden', !isLoading);
         }
 
         function hideResult() {
@@ -338,36 +320,34 @@
             box.className = "mt-5 p-5 rounded-xl border shadow-sm text-sm transition-all duration-300";
             box.classList.remove('hidden');
             
-            const successIcon = '<svg class="w-7 h-7 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>';
-            const errorIcon = '<svg class="w-7 h-7 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>';
-            const warningIcon = '<svg class="w-7 h-7 text-orange-500" fill="currentColor" viewBox="0 0 20 24"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>';
+            const icons = {
+                success: '<svg class="w-7 h-7 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>',
+                error: '<svg class="w-7 h-7 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>',
+                warning: '<svg class="w-7 h-7 text-orange-500" fill="currentColor" viewBox="0 0 20 24"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>'
+            };
 
             if (type === 'success') {
                 box.classList.add('bg-green-50', 'border-green-200');
                 titleEl.className = "font-bold mb-1 text-green-800 text-lg";
-                iconEl.innerHTML = successIcon;
             } else if (type === 'error') {
                 box.classList.add('bg-red-50', 'border-red-200');
                 titleEl.className = "font-bold mb-1 text-red-800 text-lg";
-                iconEl.innerHTML = errorIcon;
             } else {
                 box.classList.add('bg-orange-50', 'border-orange-200');
                 titleEl.className = "font-bold mb-1 text-orange-800 text-lg";
-                iconEl.innerHTML = warningIcon;
             }
 
+            iconEl.innerHTML = icons[type];
             titleEl.textContent = title;
             detailsEl.textContent = details;
 
             if (showTime) {
-                timeEl.textContent = "የተረጋገጠበት ሰዓት: " + (customTime ? customTime : getEthiopianDateTime());
+                timeEl.textContent = "የተረጋገጠበት ሰዓት: " + (customTime || getEthiopianDateTime());
                 timeEl.classList.remove('hidden');
             } else {
                 timeEl.classList.add('hidden');
             }
         }
-
-        window.onload = () => { setMethod('image'); };
     </script>
 </body>
 </html>
