@@ -3,351 +3,242 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verifi - Secure Telebirr Checkout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Ethiopic:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        teleblue: '#00B5E2',
-                        teledark: '#008bad',
-                        telelight: '#f0fbff',
-                    },
-                    fontFamily: {
-                        sans: ['"Noto Sans Ethiopic"', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
+    <title>Dash Bingo - Deposit</title>
     <style>
-        .method-tab { transition: all 0.2s ease; }
-        .active-tab { background-color: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1); color: #008bad; font-weight: 700; }
-        .inactive-tab { color: #6B7280; }
-        .inactive-tab:hover { color: #374151; background-color: #f3f4f6; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        h2 { text-align: center; color: #38bdf8; margin-top: 0; }
+        .step-card {
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .step-title {
+            font-weight: bold;
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+        input, textarea {
+            width: 100%;
+            background-color: #1e293b;
+            border: 1px solid #475569;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .quick-amounts {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .amt-btn {
+            background-color: #334155;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .amt-btn:hover { background-color: #475569; }
+        .verify-btn {
+            background: linear-gradient(to right, #0284c7, #2563eb);
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 16px;
+            display: none;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .alert-success { background-color: #064e3b; border: 1px solid #059669; color: #a7f3d0; }
+        .alert-error { background-color: #7f1d1d; border: 1px solid #dc2626; color: #fecaca; }
+        .alert-warning { background-color: #78350f; border: 1px solid #d97706; color: #fde68a; }
+        .copy-btn {
+            background-color: #2563eb; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; font-size: 12px;
+        }
     </style>
 </head>
-<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+<body>
 
-    <div class="bg-white p-6 md:p-8 rounded-2xl shadow-2xl max-w-lg w-full border border-gray-100 relative overflow-hidden">
-        
-        <!-- ሊንኩ የተጭበረበረ ወይም ያልተሟላ ከሆነ ገጹን የሚቆልፍ (Security Overlay) -->
-        <div id="securityLockOverlay" class="hidden absolute inset-0 bg-white/95 backdrop-blur-sm z-50 flex flex-col items-center justify-center p-6 text-center">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4 shadow-sm">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-            </div>
-            <h3 class="text-xl font-extrabold text-gray-800 mb-2">የተቆለፈ የክፍያ ገጽ!</h3>
-            <p class="text-sm text-gray-600 leading-relaxed mb-4">ይህ የክፍያ ሊንክ ትክክለኛ አይደለም ወይም የደህንነት ፊርማ (Signature) የለውም። እባክዎ ከዋናው ገጽ ወይም ከቦቱ የተሰጠዎትን ትክክለኛ ሊንክ ይጠቀሙ።</p>
-            <span class="text-xs font-mono bg-gray-100 px-3 py-1.5 rounded text-gray-500 border">Error: MISSING_OR_TAMPERED_SIGNATURE</span>
+<div class="container">
+    <h2>Dash Bingo ⚡ ማረጋገጫ</h2>
+
+    <!-- Step 1 -->
+    <div class="step-card">
+        <div class="step-title">1. የሚያስገቡትን የብር መጠን ይምረጡ</div>
+        <div class="quick-amounts">
+            <button class="amt-btn" onclick="setAmount(50)">50 ብር</button>
+            <button class="amt-btn" onclick="setAmount(100)">100 ብር</button>
+            <button class="amt-btn" onclick="setAmount(200)">200 ብር</button>
+            <button class="amt-btn" onclick="setAmount(500)">500 ብር</button>
         </div>
-
-        <!-- ራስጌ (Header) -->
-        <div class="flex flex-col items-center justify-center mb-6">
-            <div class="bg-telelight p-3 rounded-2xl border border-teleblue/30 shadow-sm mb-3">
-                <img src="https://i.postimg.cc/1zH5wqRj/20260805-174415.png" alt="Telebirr Logo" class="h-12 object-contain">
-            </div>
-            <h2 class="text-xl font-extrabold text-gray-800 tracking-tight">Verifi Payment Gateway</h2>
-            <p class="text-xs text-gray-500 mt-1">የቴሌብር ክፍያ ማረጋገጫ (ለአንድ ጊዜ ብቻ የሚያገለግል)</p>
-        </div>
-
-        <!-- የተቆለፈ የክፍያ መጠን እና የትዕዛዝ ቁጥር ማሳያ (ደንበኛው መቀየር አይችልም!) -->
-        <div class="bg-gradient-to-r from-telelight to-white rounded-xl p-4 mb-6 border border-teleblue/30 flex justify-between items-center shadow-sm">
-            <div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-teledark text-xs font-bold uppercase tracking-wider">የሚከፈል መጠን</span>
-                    <span id="orderBadge" class="text-[11px] bg-teleblue/15 text-teledark px-2 py-0.5 rounded font-mono font-semibold"></span>
-                </div>
-                <p class="text-2xl font-extrabold text-gray-800 mt-1 flex items-baseline">
-                    <span id="displayAmount">0.00</span>
-                    <span class="text-sm font-semibold text-gray-500 ml-1.5">ብር (ETB)</span>
-                </p>
-            </div>
-            <div class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center text-green-600" title="Cryptographically Locked">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-            </div>
-        </div>
-
-        <!-- የማረጋገጫ መንገድ መምረጫ (Tabs) -->
-        <div class="mb-5 bg-gray-100 p-1.5 rounded-xl flex text-sm text-center border border-gray-200">
-            <button id="tab-image" onclick="setMethod('image')" class="method-tab active-tab flex-1 py-2.5 rounded-lg">ደረሰኝ ፎቶ</button>
-            <button id="tab-sms" onclick="setMethod('sms')" class="method-tab inactive-tab flex-1 py-2.5 rounded-lg">SMS ጽሁፍ</button>
-            <button id="tab-manual" onclick="setMethod('manual')" class="method-tab inactive-tab flex-1 py-2.5 rounded-lg">Transaction No</button>
-        </div>
-
-        <!-- 1. የፎቶ ግብዓት -->
-        <div id="input-image" class="mb-6">
-            <div id="imageUploadBox" class="border-2 border-dashed border-teleblue/50 rounded-xl p-6 flex flex-col items-center justify-center text-center bg-telelight/40 hover:bg-telelight transition cursor-pointer" onclick="document.getElementById('receiptImage').click()">
-                <svg class="w-10 h-10 text-teleblue mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-                <p class="text-sm text-gray-700 font-semibold">የቴሌብር ደረሰኝ (Screenshot) ይምረጡ</p>
-                <input type="file" id="receiptImage" accept="image/*" class="hidden" onchange="previewImageName(this)">
-            </div>
-            
-            <div id="imagePreviewContainer" class="hidden mt-2 relative rounded-xl overflow-hidden border border-teleblue/30 bg-gray-50 p-2">
-                <img id="imagePreview" src="" alt="Preview" class="w-full h-44 object-contain rounded-lg">
-                <button onclick="clearImage()" class="absolute top-3 right-3 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-md transition">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- 2. የ SMS ጽሁፍ ግብዓት -->
-        <div id="input-sms" class="mb-6 hidden">
-            <textarea id="smsText" rows="3" class="w-full p-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teleblue transition text-sm bg-gray-50 placeholder-gray-400" placeholder="ከ 127 የደረስዎትን የቴሌብር SMS መልዕክት እዚህ ጋር Paste ያድርጉ..."></textarea>
-        </div>
-
-        <!-- 3. የ Transaction ID ግብዓት -->
-        <div id="input-manual" class="mb-6 hidden">
-            <input type="text" id="manualRef" class="w-full p-3.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teleblue transition text-sm bg-gray-50 text-center font-bold tracking-widest uppercase placeholder-gray-400" placeholder="ለምሳሌ: DJC5Q7Q5UV">
-        </div>
-
-        <!-- ማረጋገጫ ቁልፍ -->
-        <button id="verifyBtn" onclick="verifyPayment()" class="w-full bg-teleblue hover:bg-teledark text-white font-bold py-3.5 rounded-xl transition duration-300 flex justify-center items-center shadow-lg shadow-teleblue/30">
-            <span id="btnText">ክፍያውን አረጋግጥ</span>
-            <svg id="spinner" class="animate-spin ml-3 h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-        </button>
-
-        <!-- የውጤት ማሳያ -->
-        <div id="resultBox" class="mt-5 hidden p-4 rounded-xl border shadow-sm text-sm transition-all duration-300">
-            <div class="flex items-start">
-                <div id="resultIcon" class="mr-3 mt-0.5 flex-shrink-0"></div>
-                <div class="w-full">
-                    <h3 id="resultTitle" class="font-bold text-base mb-1"></h3>
-                    <p id="resultDetails" class="text-gray-600 whitespace-pre-line leading-relaxed"></p>
-                    <div id="timeDisplay" class="mt-3 text-xs text-gray-400 text-right font-medium hidden"></div>
-                </div>
-            </div>
-        </div>
-
+        <input type="number" id="amountInput" placeholder="የብር መጠን (ቢያንስ 50 ብር)" min="50">
     </div>
 
-    <script>
-        // ====================================================================
-        // አዲሱን የ Apps Script Web App URL (/exec) እዚህ አስገባ!
-        // ልብ በል: እዚህ ገጽ ላይ ምንም አይነት SECRET_TOKEN የለም! (100% Secure)
-        // ====================================================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbwuyYvDk0w_YvmlHq0_QIdysYpmizrJrCKhNUIKeMhOdaxslASsv2VJPMgWUs0zOcD7xQ/exec"; 
+    <!-- Step 2 -->
+    <div class="step-card">
+        <div class="step-title">2. ብሩን በቴሌብር ይላኩ</div>
+        <p style="font-size: 14px; margin: 0 0 8px 0;">ወደዚህ የቴሌብር አካውንት ይላኩ፦</p>
+        <div style="background-color: #1e293b; padding: 10px; border-radius: 6px; border: 1px solid #334155;">
+            <strong>0996910607</strong> (Aymen)
+            <button class="copy-btn" onclick="copyPhone()">ኮፒ አድርግ</button>
+        </div>
+        <p id="sendInstruction" style="font-size: 12px; color: #cbd5e1; margin-top: 8px;"></p>
+    </div>
 
-        let currentMethod = 'image';
-        let lockedOrder = "";
-        let lockedAmount = "";
-        let lockedSig = "";
+    <!-- Step 3 -->
+    <div class="step-card">
+        <div class="step-title">3. የግብይት ቁጥሩን (Ref) ያስገቡ</div>
+        <textarea id="refInput" rows="3" placeholder="ምሳሌ፡ DJC5Q7Q5UV ወይም ሙሉውን የቴሌብር SMS እዚህ Paste ያድርጉ..."></textarea>
+        
+        <button id="verifyBtn" class="verify-btn" onclick="verifyTransaction()">⚡ አረጋግጥና አስገባ (Verify)</button>
+    </div>
 
-        // ገጹ ሲከፈት ከ URL ላይ የተቆለፈውን ትዕዛዝ፣ ብር እና ፊርማ ያነባል
-        window.onload = () => {
-            setMethod('image');
-            const params = new URLSearchParams(window.location.search);
-            lockedOrder = (params.get('order') || "").trim();
-            lockedAmount = (params.get('amount') || "").trim();
-            lockedSig = (params.get('sig') || "").trim();
+    <!-- Alerts -->
+    <div id="statusAlert" class="alert"></div>
+</div>
 
-            if (!lockedOrder || !lockedAmount || !lockedSig || isNaN(parseFloat(lockedAmount))) {
-                document.getElementById('securityLockOverlay').classList.remove('hidden');
-            } else {
-                document.getElementById('displayAmount').textContent = parseFloat(lockedAmount).toFixed(2);
-                document.getElementById('orderBadge').textContent = "#" + lockedOrder;
+<script>
+    // 1. Amount ሲጻፍ መመሪያውን መቀየር
+    const amountInput = document.getElementById('amountInput');
+    const sendInstruction = document.getElementById('sendInstruction');
+
+    amountInput.addEventListener('input', () => {
+        const amt = amountInput.value;
+        if(amt && amt >= 50) {
+            sendInstruction.innerHTML = `አሁን ወደ 0996910607 በትክክል <b>${amt} ETB</b> ይላኩ።`;
+        } else {
+            sendInstruction.innerHTML = "";
+        }
+    });
+
+    function setAmount(val) {
+        amountInput.value = val;
+        amountInput.dispatchEvent(new Event('input'));
+    }
+
+    function copyPhone() {
+        navigator.clipboard.writeText("0996910607");
+        alert("የስልክ ቁጥሩ ኮፒ ተደርጓል!");
+    }
+
+    // 2. ዋናው የማረጋገጫ ስራ (API Call)
+    async function verifyTransaction() {
+        let rawRef = document.getElementById('refInput').value.trim();
+        let amount = amountInput.value.trim();
+        const verifyBtn = document.getElementById('verifyBtn');
+        const alertBox = document.getElementById('statusAlert');
+
+        alertBox.style.display = 'none';
+        alertBox.className = 'alert';
+
+        // ሙሉ SMS ከተለጠፈ ፈልጎ ማውጣት (Regex Extract)
+        if (rawRef.length > 15) {
+            const refMatch = rawRef.match(/transaction\s*(?:number|no|id)\s*(?:is)?[\s:]*([A-Z0-9]{10,12})\b/i) || rawRef.match(/\b([A-Z0-9]{10,12})\b/);
+            if (refMatch) rawRef = refMatch[1].toUpperCase();
+
+            const amtMatch = rawRef.match(/(?:transferred|paid)\s+(?:ETB|Birr)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i);
+            if (amtMatch && !amount) {
+                amount = amtMatch[1].replace(/,/g, '');
+                amountInput.value = amount; // ሳጥኑ ላይ ራሱ ይሞላዋል
             }
-        };
-
-        function getEthiopianDateTime() {
-            try {
-                const dateOptions = { calendar: 'ethiopic', year: 'numeric', month: 'long', day: 'numeric' };
-                let ethDate = new Intl.DateTimeFormat('am-ET', dateOptions).format(new Date());
-                let now = new Date();
-                let hours = now.getHours(); 
-                let minutes = now.getMinutes();
-
-                let timeOfDay = hours >= 6 && hours < 12 ? "ጠዋት" : hours >= 12 && hours < 18 ? "ከሰዓት" : hours >= 18 && hours < 24 ? "ማታ" : "ሌሊት";
-                let ethHours = (hours + 6) % 12 || 12;
-                let minsStr = minutes < 10 ? "0" + minutes : minutes;
-                return `${ethDate} ፣ ${timeOfDay} ${ethHours}:${minsStr}`;
-            } catch (e) {
-                return new Date().toLocaleString('am-ET');
-            }
         }
 
-        function setMethod(method) {
-            currentMethod = method;
-            hideResult();
-            ['image', 'sms', 'manual'].forEach(m => {
-                const tab = document.getElementById('tab-' + m);
-                tab.classList.toggle('active-tab', m === method);
-                tab.classList.toggle('inactive-tab', m !== method);
-                document.getElementById('input-' + m).classList.toggle('hidden', m !== method);
-            });
+        // ማጣሪያዎች
+        if (!amount || amount < 50) {
+            showAlert("⚠️ እባክዎ ትክክለኛ የብር መጠን ያስገቡ (ቢያንስ 50 ብር)።", "alert-warning");
+            return;
+        }
+        if (!rawRef || rawRef.length < 9) {
+            showAlert("⚠️ እባክዎ ትክክለኛ ባለ 10 ፊደል የቴሌብር የግብይት ቁጥር (Ref) ያስገቡ።", "alert-warning");
+            return;
         }
 
-        function previewImageName(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('imagePreview').src = e.target.result;
-                    document.getElementById('imageUploadBox').classList.add('hidden');
-                    document.getElementById('imagePreviewContainer').classList.remove('hidden');
-                }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
+        // ወደ ሰርቨር ጥያቄ መላክ
+        verifyBtn.disabled = true;
+        verifyBtn.innerText = "⏳ በማረጋገጥ ላይ...";
 
-        function clearImage() {
-            document.getElementById('receiptImage').value = '';
-            document.getElementById('imagePreview').src = '';
-            document.getElementById('imagePreviewContainer').classList.add('hidden');
-            document.getElementById('imageUploadBox').classList.remove('hidden');
-        }
-
-        function isCbeData(text) {
-            const lower = text.toLowerCase();
-            return lower.includes('cbe') || lower.includes('commercial bank') || lower.includes('mbreciept') || /\bft[a-z0-9]{8,15}\b/i.test(text);
-        }
-
-        function extractTelebirrRef(text) {
-            const appMatch = text.match(/(?:Transaction Number|Transaction ID|Txn ID|የክፍያ ቁጥር)[\s:]*([A-Z0-9]{10,12})\b/i);
-            if (appMatch) return appMatch[1].toUpperCase();
+        try {
+            // የአንተን ትክክለኛ የ Render ኤፒአይ ሊንክ እዚህ ተጠቅመናል!
+            const apiUrl = `https://verifi-server.onrender.com/api/verify?token=Verifi_Prod_9842_Aymen_X9!2026&ref=${rawRef}&amount=${amount}`;
             
-            const smsMatch = text.match(/transaction\s*(?:number|no|id)\s*(?:is)?[\s:]*([A-Z0-9]{10,12})\b/i);
-            if (smsMatch) return smsMatch[1].toUpperCase();
-            
-            const fallbackMatch = text.match(/\b((?=[A-Z0-9]*[A-Z])(?=[A-Z0-9]*\d)[A-Z0-9]{10,12})\b/i);
-            return fallbackMatch ? fallbackMatch[1].toUpperCase() : null;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            // መልሶችን ማስተናገድ
+            if (data.status === 'Verified') {
+                showAlert(`🎉 ክፍያዎ ተረጋግጧል! ${data.amount} ብር ወደ አካውንትዎ ገቢ ተደርጓል።`, "alert-success");
+                verifyBtn.innerText = "✅ ተረጋግጧል";
+                // እዚህ ጋር ወደ ዳሽቦርድ መመለስ ትችላለህ (ለምሳሌ: window.location.href = '/dashboard';)
+            } 
+            else if (data.status === 'Pending') {
+                showAlert("⏳ ክፍያው ገና አልደረሰም ወይም ያስገቡት የግብይት ቁጥር (Ref) ተሳስቷል። እባክዎ ከ 5 ሰከንድ በኋላ ድጋሚ ይሞክሩ።", "alert-warning");
+                verifyBtn.disabled = false;
+                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+            } 
+            else if (data.status === 'InvalidAmount') {
+                showAlert(`⚠️ ያስገቡት የብር መጠን (${data.expected} ብር) በቴሌብር ከላኩት (${data.actual} ብር) ጋር አይตรงም! እባክዎ የብር መጠኑን ${data.actual} ብለው አስተካክለው ድጋሚ ይሞክሩ።`, "alert-warning");
+                verifyBtn.disabled = false;
+                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+            } 
+            else if (data.status === 'AlreadyUsed') {
+                showAlert("❌ ይህ የግብይት ቁጥር (Ref) ቀድሞ ጥቅም ላይ ውሏል! በድጋሚ መጠቀም አይቻልም።", "alert-error");
+                verifyBtn.disabled = false;
+                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+            } 
+            else {
+                showAlert("❌ ይህ ትክክለኛ የገቢ ክፍያ ቁጥር አይደለም።", "alert-error");
+                verifyBtn.disabled = false;
+                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+            }
+
+        } catch (error) {
+            showAlert("⚠️ ከሰርቨር ጋር መገናኘት አልተቻለም። ኢንተርኔትዎን አረጋግጠው ድጋሚ ይሞክሩ።", "alert-error");
+            verifyBtn.disabled = false;
+            verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
         }
+    }
 
-        async function verifyPayment() {
-            let extractedRawText = "";
-            hideResult();
-
-            if (currentMethod === 'manual') {
-                extractedRawText = document.getElementById('manualRef').value.trim();
-            } else if (currentMethod === 'sms') {
-                extractedRawText = document.getElementById('smsText').value.trim();
-            } else if (currentMethod === 'image') {
-                const fileInput = document.getElementById('receiptImage');
-                if (!fileInput.files[0]) {
-                    showResult('error', 'ፎቶ አልተመረጠም', 'እባክዎ የቴሌብር ደረሰኝ ስክሪንሹት ይምረጡ።');
-                    return;
-                }
-                setLoading(true, "ደረሰኙን በማንበብ ላይ... (AI)");
-                try {
-                    const { data: { text } } = await Tesseract.recognize(fileInput.files[0], 'eng');
-                    extractedRawText = text;
-                } catch (e) {
-                    setLoading(false);
-                    showResult('error', 'ስህተት', 'ፎቶውን ማንበብ አልተቻለም። እባክዎ ጥራት ያለው ስክሪንሹት ይጠቀሙ።');
-                    return;
-                }
-            }
-
-            if (isCbeData(extractedRawText)) {
-                setLoading(false);
-                showResult('error', 'የተሳሳተ ደረሰኝ!', 'ያስገቡት የንግድ ባንክ (CBE) መረጃ ነው። እባክዎ የቴሌብር ክፍያ ብቻ ይጠቀሙ!');
-                return;
-            }
-
-            const refNo = extractTelebirrRef(extractedRawText);
-            if (!refNo) {
-                setLoading(false);
-                showResult('error', 'የክፍያ ቁጥር አልተገኘም', 'ከመረጃው ላይ ትክክለኛ ባለ 10-12 ፊደል የቴሌብር የክፍያ ቁጥር (Transaction Number) አልተገኘም።');
-                return;
-            }
-
-            setLoading(true, "ክፍያውን በማረጋገጥ ላይ...");
-            
-            try {
-                // የተቆለፈውን order, amount እና sig አብሮ ወደ ሰርቨር ይልካል
-                const query = `?action=verify_signed&ref=${encodeURIComponent(refNo)}&order=${encodeURIComponent(lockedOrder)}&amount=${encodeURIComponent(lockedAmount)}&sig=${encodeURIComponent(lockedSig)}`;
-                const response = await fetch(API_URL + query);
-                const data = await response.json();
-
-                if (data.status === "Verified") {
-                    const nowEth = getEthiopianDateTime();
-                    const details = `ክፍያዎ ለመጀመሪያ ጊዜ በትክክል ተረጋግጧል!\nትዕዛዝ: #${lockedOrder}\nከፋይ: ${data.from_to}\nመጠን: ${data.amount} ብር\nTxn No: ${data.ref_no}`;
-                    showResult('success', 'ክፍያው ተረጋግጧል (Verified)!', details, true, nowEth);
-                } 
-                else if (data.status === "AlreadyUsed") {
-                    showResult('error', 'ውድቅ ተደርጓል - ቀድሞ የተጠቀሙበት (Already Used)!', `ይህ የክፍያ ቁጥር (${refNo}) ከዚህ በፊት ጥቅም ላይ ውሏል። አንድ ደረሰኝ ሁለት ጊዜ አያገለግልም!`);
-                }
-                else if (data.status === "OrderAlreadyPaid") {
-                    showResult('error', 'ትዕዛዙ ቀድሞ ተከፍሏል!', `ይህ የትዕዛዝ ቁጥር (#${lockedOrder}) ቀደም ብሎ ክፍያ ተፈጽሞበታል።`);
-                }
-                else if (data.status === "InvalidAmount") {
-                    showResult('error', 'የገንዘብ መጠን ስህተት!', `የከፈሉት የብር መጠን ከትዕዛዙ ጋር አይመጣጠንም።\nየሚጠበቀው: ${data.expected} ብር\nየተከፈለው: ${data.actual} ብር`);
-                }
-                else if (data.status === "Bad_Link") {
-                    showResult('error', 'የደህንነት ማስጠንቀቂያ (Tampered Link)!', 'የክፍያ ሊንኩ ወይም የገንዘቡ መጠን ተቀይሯል! እባክዎ ትክክለኛውን ሊንክ ይጠቀሙ።');
-                }
-                else if (data.status === "TooManyAttempts") {
-                    showResult('error', 'ሙከራ በዝቷል (Blocked)!', 'በተደጋጋሚ የተሳሳተ ሙከራ ስላደረጉ ለ 10 ደቂቃ ታግደዋል።');
-                }
-                else if (data.status === "Expired") {
-                    showResult('error', 'ጊዜው ያለፈበት ደረሰኝ!', 'ይህ ደረሰኝ ከ 24 ሰዓት በላይ ስለቆየ አገልግሎት አይሰጥም።');
-                }
-                else {
-                    showResult('warning', 'ክፍያው አልተገኘም (Pending)', 'ክፍያዎ ገና ሲስተማችን ላይ አልደረሰም ወይም ቁጥሩ ተሳስቷል። እባክዎ ጥቂት ሰከንዶች ጠብቀው ይሞክሩ።');
-                }
-            } catch (error) {
-                showResult('error', 'የኔትወርክ ስህተት', 'ከሰርቨር ጋር መገናኘት አልተቻለም። እባክዎ የ API_URL ሊንኩን በትክክል ማስገባትዎን ያረጋግጡ።');
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        function setLoading(isLoading, text = "ክፍያውን አረጋግጥ") {
-            const btn = document.getElementById('verifyBtn');
-            btn.disabled = isLoading;
-            document.getElementById('btnText').innerText = text;
-            btn.classList.toggle('opacity-75', isLoading);
-            btn.classList.toggle('cursor-not-allowed', isLoading);
-            document.getElementById('spinner').classList.toggle('hidden', !isLoading);
-        }
-
-        function hideResult() {
-            document.getElementById('resultBox').classList.add('hidden');
-            document.getElementById('timeDisplay').classList.add('hidden');
-        }
-
-        function showResult(type, title, details, showTime = false, customTime = null) {
-            const box = document.getElementById('resultBox');
-            const titleEl = document.getElementById('resultTitle');
-            const detailsEl = document.getElementById('resultDetails');
-            const iconEl = document.getElementById('resultIcon');
-            const timeEl = document.getElementById('timeDisplay');
-
-            box.className = "mt-5 p-5 rounded-xl border shadow-sm text-sm transition-all duration-300";
-            box.classList.remove('hidden');
-            
-            const icons = {
-                success: '<svg class="w-7 h-7 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>',
-                error: '<svg class="w-7 h-7 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>',
-                warning: '<svg class="w-7 h-7 text-orange-500" fill="currentColor" viewBox="0 0 20 24"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>'
-            };
-
-            if (type === 'success') {
-                box.classList.add('bg-green-50', 'border-green-200');
-                titleEl.className = "font-bold mb-1 text-green-800 text-lg";
-            } else if (type === 'error') {
-                box.classList.add('bg-red-50', 'border-red-200');
-                titleEl.className = "font-bold mb-1 text-red-800 text-lg";
-            } else {
-                box.classList.add('bg-orange-50', 'border-orange-200');
-                titleEl.className = "font-bold mb-1 text-orange-800 text-lg";
-            }
-
-            iconEl.innerHTML = icons[type];
-            titleEl.textContent = title;
-            detailsEl.textContent = details;
-
-            if (showTime) {
-                timeEl.textContent = "የተረጋገጠበት ሰዓት: " + (customTime || getEthiopianDateTime());
-                timeEl.classList.remove('hidden');
-            } else {
-                timeEl.classList.add('hidden');
-            }
-        }
-    </script>
+    function showAlert(message, className) {
+        const alertBox = document.getElementById('statusAlert');
+        alertBox.innerText = message;
+        alertBox.className = `alert ${className}`;
+        alertBox.style.display = 'block';
+    }
+</script>
 </body>
 </html>
