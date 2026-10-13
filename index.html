@@ -3,170 +3,110 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dash Bingo - Deposit</title>
+    <title>Telebirr Payment Gateway</title>
     <style>
         body {
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #f3f4f6;
+            color: #1f2937;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
-        .container {
-            background-color: #1e293b;
+        .gateway-card {
+            background-color: #ffffff;
             border-radius: 12px;
-            padding: 24px;
+            padding: 30px;
             max-width: 400px;
             width: 100%;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-top: 5px solid #0ea5e9;
         }
-        h2 { text-align: center; color: #38bdf8; margin-top: 0; }
-        .step-card {
-            background-color: #0f172a;
-            border: 1px solid #334155;
+        h2 { text-align: center; color: #0284c7; margin-top: 0; font-size: 22px; }
+        .merchant-info {
+            background-color: #f0f9ff;
+            border: 1px dashed #7dd3fc;
+            padding: 15px;
             border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 16px;
+            text-align: center;
+            margin-bottom: 20px;
         }
-        .step-title {
-            font-weight: bold;
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
+        .merchant-info h3 { margin: 0; color: #0369a1; font-size: 18px; }
+        .merchant-info p { margin: 5px 0 0 0; color: #0c4a6e; font-size: 14px; }
+        label { font-weight: bold; font-size: 14px; color: #4b5563; display: block; margin-bottom: 5px; }
         input, textarea {
             width: 100%;
-            background-color: #1e293b;
-            border: 1px solid #475569;
-            color: white;
-            padding: 10px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 16px;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            background-color: #f9fafb;
         }
-        .quick-amounts {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-        .amt-btn {
-            background-color: #334155;
-            border: none;
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .amt-btn:hover { background-color: #475569; }
+        input:focus, textarea:focus { outline: none; border-color: #0ea5e9; background-color: #fff; }
         .verify-btn {
-            background: linear-gradient(to right, #0284c7, #2563eb);
+            background-color: #0ea5e9;
             color: white;
             border: none;
-            padding: 12px;
+            padding: 14px;
             width: 100%;
             border-radius: 6px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 10px;
+            transition: background-color 0.2s;
         }
-        .verify-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .verify-btn:hover { background-color: #0284c7; }
+        .verify-btn:disabled { background-color: #94a3b8; cursor: not-allowed; }
         .alert {
             padding: 12px;
             border-radius: 6px;
-            margin-top: 16px;
+            margin-top: 15px;
             display: none;
             font-size: 14px;
-            line-height: 1.5;
+            text-align: center;
         }
-        .alert-success { background-color: #064e3b; border: 1px solid #059669; color: #a7f3d0; }
-        .alert-error { background-color: #7f1d1d; border: 1px solid #dc2626; color: #fecaca; }
-        .alert-warning { background-color: #78350f; border: 1px solid #d97706; color: #fde68a; }
-        .copy-btn {
-            background-color: #2563eb; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; font-size: 12px;
-        }
+        .alert-success { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+        .alert-error { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+        .alert-warning { background-color: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Dash Bingo ⚡ ማረጋገጫ</h2>
+<div class="gateway-card">
+    <h2>የክፍያ ማረጋገጫ (Payment Gateway)</h2>
 
-    <!-- Step 1 -->
-    <div class="step-card">
-        <div class="step-title">1. የሚያስገቡትን የብር መጠን ይምረጡ</div>
-        <div class="quick-amounts">
-            <button class="amt-btn" onclick="setAmount(50)">50 ብር</button>
-            <button class="amt-btn" onclick="setAmount(100)">100 ብር</button>
-            <button class="amt-btn" onclick="setAmount(200)">200 ብር</button>
-            <button class="amt-btn" onclick="setAmount(500)">500 ብር</button>
-        </div>
-        <input type="number" id="amountInput" placeholder="የብር መጠን (ቢያንስ 50 ብር)" min="50">
+    <div class="merchant-info">
+        <h3>0996910607</h3>
+        <p>Aymen</p>
     </div>
 
-    <!-- Step 2 -->
-    <div class="step-card">
-        <div class="step-title">2. ብሩን በቴሌብር ይላኩ</div>
-        <p style="font-size: 14px; margin: 0 0 8px 0;">ወደዚህ የቴሌብር አካውንት ይላኩ፦</p>
-        <div style="background-color: #1e293b; padding: 10px; border-radius: 6px; border: 1px solid #334155;">
-            <strong>0996910607</strong> (Aymen)
-            <button class="copy-btn" onclick="copyPhone()">ኮፒ አድርግ</button>
-        </div>
-        <p id="sendInstruction" style="font-size: 12px; color: #cbd5e1; margin-top: 8px;"></p>
-    </div>
+    <label>የላኩት የብር መጠን</label>
+    <input type="number" id="amountInput" placeholder="ምሳሌ: 100" min="1">
 
-    <!-- Step 3 -->
-    <div class="step-card">
-        <div class="step-title">3. የግብይት ቁጥሩን (Ref) ያስገቡ</div>
-        <textarea id="refInput" rows="3" placeholder="ምሳሌ፡ DJC5Q7Q5UV ወይም ሙሉውን የቴሌብር SMS እዚህ Paste ያድርጉ..."></textarea>
-        
-        <button id="verifyBtn" class="verify-btn" onclick="verifyTransaction()">⚡ አረጋግጥና አስገባ (Verify)</button>
-    </div>
+    <label>የግብይት ቁጥር (Ref) ወይም ሙሉ SMS</label>
+    <textarea id="refInput" rows="3" placeholder="ምሳሌ: DJC5Q7Q5UV"></textarea>
+    
+    <button id="verifyBtn" class="verify-btn" onclick="verifyTransaction()">ክፍያውን አረጋግጥ</button>
 
-    <!-- Alerts -->
     <div id="statusAlert" class="alert"></div>
 </div>
 
 <script>
-    // 1. Amount ሲጻፍ መመሪያውን መቀየር
-    const amountInput = document.getElementById('amountInput');
-    const sendInstruction = document.getElementById('sendInstruction');
-
-    amountInput.addEventListener('input', () => {
-        const amt = amountInput.value;
-        if(amt && amt >= 50) {
-            sendInstruction.innerHTML = `አሁን ወደ 0996910607 በትክክል <b>${amt} ETB</b> ይላኩ።`;
-        } else {
-            sendInstruction.innerHTML = "";
-        }
-    });
-
-    function setAmount(val) {
-        amountInput.value = val;
-        amountInput.dispatchEvent(new Event('input'));
-    }
-
-    function copyPhone() {
-        navigator.clipboard.writeText("0996910607");
-        alert("የስልክ ቁጥሩ ኮፒ ተደርጓል!");
-    }
-
-    // 2. ዋናው የማረጋገጫ ስራ (API Call)
     async function verifyTransaction() {
         let rawRef = document.getElementById('refInput').value.trim();
-        let amount = amountInput.value.trim();
+        let amount = document.getElementById('amountInput').value.trim();
         const verifyBtn = document.getElementById('verifyBtn');
         const alertBox = document.getElementById('statusAlert');
 
         alertBox.style.display = 'none';
         alertBox.className = 'alert';
 
-        // ሙሉ SMS ከተለጠፈ ፈልጎ ማውጣት (Regex Extract)
+        // ሙሉ SMS ከተለጠፈ Ref እና Amount አውጣ
         if (rawRef.length > 15) {
             const refMatch = rawRef.match(/transaction\s*(?:number|no|id)\s*(?:is)?[\s:]*([A-Z0-9]{10,12})\b/i) || rawRef.match(/\b([A-Z0-9]{10,12})\b/);
             if (refMatch) rawRef = refMatch[1].toUpperCase();
@@ -174,62 +114,57 @@
             const amtMatch = rawRef.match(/(?:transferred|paid)\s+(?:ETB|Birr)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i);
             if (amtMatch && !amount) {
                 amount = amtMatch[1].replace(/,/g, '');
-                amountInput.value = amount; // ሳጥኑ ላይ ራሱ ይሞላዋል
+                document.getElementById('amountInput').value = amount;
             }
         }
 
-        // ማጣሪያዎች
-        if (!amount || amount < 50) {
-            showAlert("⚠️ እባክዎ ትክክለኛ የብር መጠን ያስገቡ (ቢያንስ 50 ብር)።", "alert-warning");
+        if (!amount || amount <= 0) {
+            showAlert("እባክዎ ትክክለኛ የብር መጠን ያስገቡ።", "alert-warning");
             return;
         }
         if (!rawRef || rawRef.length < 9) {
-            showAlert("⚠️ እባክዎ ትክክለኛ ባለ 10 ፊደል የቴሌብር የግብይት ቁጥር (Ref) ያስገቡ።", "alert-warning");
+            showAlert("እባክዎ ትክክለኛ የቴሌብር የግብይት ቁጥር (Ref) ያስገቡ።", "alert-warning");
             return;
         }
 
-        // ወደ ሰርቨር ጥያቄ መላክ
         verifyBtn.disabled = true;
-        verifyBtn.innerText = "⏳ በማረጋገጥ ላይ...";
+        verifyBtn.innerText = "በማረጋገጥ ላይ...";
 
         try {
-            // የአንተን ትክክለኛ የ Render ኤፒአይ ሊንክ እዚህ ተጠቅመናል!
+            // የአንተ ቋሚ የ Render ኤፒአይ ሊንክ (Gateway)
             const apiUrl = `https://verifi-server.onrender.com/api/verify?token=Verifi_Prod_9842_Aymen_X9!2026&ref=${rawRef}&amount=${amount}`;
             
             const response = await fetch(apiUrl);
             const data = await response.json();
 
-            // መልሶችን ማስተናገድ
             if (data.status === 'Verified') {
-                showAlert(`🎉 ክፍያዎ ተረጋግጧል! ${data.amount} ብር ወደ አካውንትዎ ገቢ ተደርጓል።`, "alert-success");
-                verifyBtn.innerText = "✅ ተረጋግጧል";
-                // እዚህ ጋር ወደ ዳሽቦርድ መመለስ ትችላለህ (ለምሳሌ: window.location.href = '/dashboard';)
+                showAlert(`✅ ተረጋግጧል! ${data.amount} ብር ገቢ ሆኗል።`, "alert-success");
+                verifyBtn.innerText = "ክፍያው ተሳክቷል";
             } 
             else if (data.status === 'Pending') {
-                showAlert("⏳ ክፍያው ገና አልደረሰም ወይም ያስገቡት የግብይት ቁጥር (Ref) ተሳስቷል። እባክዎ ከ 5 ሰከንድ በኋላ ድጋሚ ይሞክሩ።", "alert-warning");
+                showAlert("⏳ ክፍያው አልደረሰም ወይም Ref ተሳስቷል። ትንሽ ቆይተው ይሞክሩ።", "alert-warning");
                 verifyBtn.disabled = false;
-                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+                verifyBtn.innerText = "ክፍያውን አረጋግጥ";
             } 
             else if (data.status === 'InvalidAmount') {
-                showAlert(`⚠️ ያስገቡት የብር መጠን (${data.expected} ብር) በቴሌብር ከላኩት (${data.actual} ብር) ጋር አይตรงም! እባክዎ የብር መጠኑን ${data.actual} ብለው አስተካክለው ድጋሚ ይሞክሩ።`, "alert-warning");
+                showAlert(`⚠️ ያስገቡት የብር መጠን እና የላኩት ብር አይገናኝም! ትክክለኛው የላኩት ${data.actual} ብር ነው።`, "alert-warning");
                 verifyBtn.disabled = false;
-                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+                verifyBtn.innerText = "ክፍያውን አረጋግጥ";
             } 
             else if (data.status === 'AlreadyUsed') {
-                showAlert("❌ ይህ የግብይት ቁጥር (Ref) ቀድሞ ጥቅም ላይ ውሏል! በድጋሚ መጠቀም አይቻልም።", "alert-error");
+                showAlert("❌ ይህ ደረሰኝ ከዚህ በፊት ጥቅም ላይ ውሏል!", "alert-error");
                 verifyBtn.disabled = false;
-                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+                verifyBtn.innerText = "ክፍያውን አረጋግጥ";
             } 
             else {
-                showAlert("❌ ይህ ትክክለኛ የገቢ ክፍያ ቁጥር አይደለም።", "alert-error");
+                showAlert("❌ ትክክለኛ የገቢ ክፍያ አይደለም።", "alert-error");
                 verifyBtn.disabled = false;
-                verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+                verifyBtn.innerText = "ክፍያውን አረጋግጥ";
             }
-
         } catch (error) {
-            showAlert("⚠️ ከሰርቨር ጋር መገናኘት አልተቻለም። ኢንተርኔትዎን አረጋግጠው ድጋሚ ይሞክሩ።", "alert-error");
+            showAlert("⚠️ ከሰርቨር ጋር መገናኘት አልተቻለም። ኢንተርኔትዎን ያረጋግጡ።", "alert-error");
             verifyBtn.disabled = false;
-            verifyBtn.innerText = "⚡ አረጋግጥና አስገባ (Verify)";
+            verifyBtn.innerText = "ክፍያውን አረጋግጥ";
         }
     }
 
